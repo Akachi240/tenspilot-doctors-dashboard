@@ -1,5 +1,5 @@
 import Groq from 'groq-sdk';
-import type { PatientWithStats } from './types';
+import type { PatientWithStats, Session } from './types';
 
 // Use standard API key env variable naming based on your setup.
 // Assuming VITE_GROQ_API_KEY
@@ -21,7 +21,7 @@ export async function generateClinicalNote(
   }
 
   // Construct raw context block
-  const rawData = sessions.map((s: { timestamp: string | Date | number, modeName: string, modeId: string, duration: number, painBefore: number, painAfter: number, intensity?: number }) => (
+  const rawData = sessions.map((s: Session & { placement?: string }) => (
     `Date: ${s.timestamp}
 Mode: ${s.modeName} (${s.modeId})
 Duration: ${s.duration} min
