@@ -15,3 +15,7 @@ const firebaseConfig = {
 export const app = getApps().length ? getApp() : initializeApp(firebaseConfig)
 export const auth = getAuth(app)
 export const db = getFirestore(app)
+
+if (!db || !firebaseConfig.appId || !firebaseConfig.projectId) {
+  console.error('❌ Firebase not initialized properly - check your .env variables', firebaseConfig);
+}

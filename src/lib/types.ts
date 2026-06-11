@@ -39,6 +39,16 @@ export interface Session {
   notes?: string
 }
 
+export interface PainLog {
+  id: string
+  patientId: string
+  painLevel: number
+  location: string
+  notes?: string
+  timestamp: Date
+  source?: 'manual' | 'pre-session' | 'post-session'
+}
+
 export interface DoctorPatientLink {
   id: string
   accessCode: string

@@ -27,8 +27,8 @@ import {
   ResponsiveContainer,
   Legend,
 } from 'recharts'
-import { fetchPatient, fetchPatientSessions } from '@/lib/firestore'
-import type { Patient, Session } from '@/lib/types'
+import { fetchPatient, fetchPatientSessions, fetchPatientPainLogs } from '@/lib/firestore'
+import type { Patient, Session, PainLog } from '@/lib/types'
 import {
   cn,
   formatDate,
@@ -48,6 +48,7 @@ export function PatientDetailPage() {
   
   const [patient, setPatient] = useState<Patient | null>(null)
   const [sessions, setSessions] = useState<Session[]>([])
+  const [painLogs, setPainLogs] = useState<PainLog[]>([])
   const [loading, setLoading] = useState(true)
 
   const [timeRange, setTimeRange] = useState<TimeRange>('7')
@@ -65,12 +66,14 @@ export function PatientDetailPage() {
     const loadData = async () => {
       setLoading(true)
       try {
-        const [p, s] = await Promise.all([
+        const [p, s, pLogs] = await Promise.all([
           fetchPatient(patientId),
-          fetchPatientSessions(patientId)
+          fetchPatientSessions(patientId),
+          fetchPatientPainLogs(patientId)
         ])
         setPatient(p)
         setSessions(s)
+        setPainLogs(pLogs)
       } catch (err) {
         console.error(err)
       } finally {
@@ -500,6 +503,50 @@ export function PatientDetailPage() {
             </div>
           </div>
         )}
+      </div>
+
+      {/* Pain Logs */}
+      <div className="glass-card overflow-hidden animate-slide-up mt-8" style={{ animationDelay: '0.4s' }}>
+        <div className="p-6 border-b border-white/5 bg-surface-2/30">
+          <h2 className="text-lg font-semibold text-slate-100">Pain Logs</h2>
+        </div>
+        <div className="divide-y divide-white/5">
+          {painLogs.length === 0 ? (
+            <div className="p-8 text-center text-slate-400">
+              No pain logs recorded yet.
+            </div>
+          ) : (
+            painLogs.slice(0, 5).map((log) => (
+              <div key={log.id} className="p-4 hover:bg-white/5 transition-colors">
+                <div className="flex items-start justify-between">
+                  <div className="flex items-start gap-3">
+                    <div className="p-2 bg-red-500/10 rounded-lg mt-0.5 text-red-400">
+                      <Activity className="w-4 h-4" />
+                    </div>
+                    <div>
+                      <p className="font-medium text-slate-200">
+                        Pain Level: <span className="text-red-400">{log.painLevel}</span>/10
+                      </p>
+                      <p className="text-sm text-slate-500 mt-0.5">
+                        {formatDate(log.timestamp)} &middot; {log.location}
+                      </p>
+                    </div>
+                  </div>
+                  {log.source && (
+                    <span className="text-xs font-medium text-slate-400 capitalize px-2 py-1 bg-surface-2 rounded-md">
+                      {log.source}
+                    </span>
+                  )}
+                </div>
+                {log.notes && (
+                  <p className="mt-3 ml-[2.75rem] text-sm text-slate-400 italic border-l-2 border-white/10 pl-3 py-0.5">
+                    &ldquo;{log.notes}&rdquo;
+                  </p>
+                )}
+              </div>
+            ))
+          )}
+        </div>
       </div>
 
       {/* Modals */}

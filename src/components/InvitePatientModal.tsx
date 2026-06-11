@@ -44,8 +44,9 @@ export function InvitePatientModal({ isOpen, onClose }: InvitePatientModalProps)
       const link = await createAccessCode(doctor.id)
       setNewCode(link.accessCode)
       await loadCodes()
-    } catch (error) {
+    } catch (error: any) {
       console.error('Failed to generate code:', error)
+      alert('Error generating code: ' + (error.message || 'Unknown error'))
     } finally {
       setGenerating(false)
     }

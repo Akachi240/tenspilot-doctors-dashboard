@@ -18,6 +18,7 @@ import { db } from '@/lib/firebase'
 import type {
   Patient,
   Session,
+  PainLog,
   DoctorPatientLink,
   DashboardStats,
   PatientWithStats,
@@ -134,6 +135,38 @@ export async function fetchPatientSessions(patientId: string): Promise<Session[]
   }
 }
 
+export async function fetchPatientPainLogs(patientId: string): Promise<PainLog[]> {
+  try {
+    const q = query(
+      collection(db, 'pain_logs'),
+      where('patientId', '==', patientId),
+      orderBy('timestamp', 'desc')
+    )
+    
+    const snapshot = await getDocs(q)
+    return snapshot.docs.map(doc => {
+      const data = doc.data()
+      const ts = data.timestamp as Timestamp | Date | undefined
+      let timestamp: Date | undefined
+      if (ts instanceof Date) timestamp = ts
+      else if (ts && typeof ts === 'object' && 'toDate' in ts) timestamp = (ts as any).toDate()
+
+      return {
+        id: doc.id,
+        patientId: (data.patientId as string) || patientId,
+        painLevel: Number(data.painLevel) || 0,
+        location: (data.location as string) || 'Unknown',
+        notes: data.notes as string | undefined,
+        timestamp: timestamp || new Date(),
+        source: data.source as 'manual' | 'pre-session' | 'post-session' | undefined,
+      }
+    })
+  } catch (error) {
+    console.error(`Error fetching pain logs for patient ${patientId}:`, error)
+    return []
+  }
+}
+
 /** Fetch a single patient by ID */
 export async function fetchPatient(patientId: string): Promise<Patient | null> {
   const patientDoc = await getDoc(doc(db, 'users', patientId))
@@ -171,14 +204,36 @@ export async function fetchDashboardStats(doctorId: string): Promise<DashboardSt
           where('timestamp', '>=', Timestamp.fromDate(oneWeekAgo))
       ))
     );
-    const querySnapshots = await Promise.all(queryPromises);
+    try {
+      const querySnapshots = await Promise.all(queryPromises);
 
-    for (const snapshot of querySnapshots) {
-      weeklySessionCount += snapshot.size;
-      for (const d of snapshot.docs) {
-        const data = d.data();
-        totalRelief += calculatePainRelief((data.painBefore as number) || 0, (data.painAfter as number) || 0);
-        reliefCount++;
+      for (const snapshot of querySnapshots) {
+        weeklySessionCount += snapshot.size;
+        for (const d of snapshot.docs) {
+          const data = d.data();
+          totalRelief += calculatePainRelief((data.painBefore as number) || 0, (data.painAfter as number) || 0);
+          reliefCount++;
+        }
+      }
+    } catch (err) {
+      console.warn("Failed to fetch dashboard stats with timestamp index, trying fallback...", err);
+      const fallbackPromises = patientIdChunks.map(chunk =>
+        getDocs(query(
+            collection(db, 'sessions'),
+            where('patientId', 'in', chunk)
+        ))
+      );
+      const fallbackSnapshots = await Promise.all(fallbackPromises);
+      for (const snapshot of fallbackSnapshots) {
+        for (const d of snapshot.docs) {
+          const data = d.data();
+          const sessionTimestamp = (data.timestamp as Timestamp)?.toDate();
+          if (sessionTimestamp && sessionTimestamp >= oneWeekAgo) {
+            weeklySessionCount++;
+            totalRelief += calculatePainRelief((data.painBefore as number) || 0, (data.painAfter as number) || 0);
+            reliefCount++;
+          }
+        }
       }
     }
   }
@@ -210,7 +265,14 @@ export async function createAccessCode(doctorId: string): Promise<DoctorPatientL
     status: 'active',
   }
 
-  const docRef = await addDoc(collection(db, 'doctorPatientLinks'), linkData)
+  const timeoutPromise = new Promise<never>((_, reject) => 
+    setTimeout(() => reject(new Error('Network timeout: Could not connect to database. Please disable any AdBlockers or VPNs.')), 8000)
+  );
+
+  const docRef = await Promise.race([
+    addDoc(collection(db, 'doctorPatientLinks'), linkData),
+    timeoutPromise
+  ]);
 
   return {
     id: docRef.id,
@@ -287,28 +349,64 @@ function chunkArray<T>(array: T[], size: number): T[][] {
   )
 }
 
+import { validateSession } from '@/lib/schemas/session.schema';
+
 function mapSession(id: string, data: Record<string, unknown>): Session | null {
-  const ts = data.timestamp as Timestamp | undefined
-  const timestamp = ts?.toDate()
+  try {
+    // Handle both Firestore Timestamp and Date objects
+    const ts = data.timestamp as Timestamp | Date | undefined;
+    let timestamp: Date | undefined;
 
-  // A session without a timestamp is considered invalid data and should be ignored.
-  if (!timestamp) {
-    console.warn(`Session with ID ${id} is missing a timestamp and will be skipped.`)
-    return null
-  }
+    if (ts instanceof Date) {
+      timestamp = ts;
+    } else if (ts && typeof ts === 'object' && 'toDate' in ts) {
+      timestamp = (ts as any).toDate();
+    }
 
-  return {
-    id,
-    patientId: (data.patientId as string) || '',
-    modeId: (data.modeId as string) || 'general',
-    modeName: (data.modeName as string) || 'General TENS',
-    painBefore: (data.painBefore as number) || 0,
-    painAfter: (data.painAfter as number) || 0,
-    duration: (data.duration as number) || 0,
-    intensity: (data.intensity as number) || 0,
-    timestamp,
-    location: (data.location as string) || '',
-    notes: data.notes as string | undefined,
+    // Validate required fields
+    if (!timestamp) {
+      console.warn(
+        `❌ Session ${id}: Missing or invalid timestamp. Raw data:`,
+        data
+      );
+      return null;
+    }
+
+    const patientId = (data.patientId as string) || '';
+    if (!patientId) {
+      console.warn(`❌ Session ${id}: Missing patientId`);
+      return null;
+    }
+
+    // Build session object
+    const session: Session = {
+      id,
+      patientId,
+      modeId: (data.modeId as string) || 'general',
+      modeName: (data.modeName as string) || 'General TENS',
+      painBefore: Number(data.painBefore) || 0,
+      painAfter: Number(data.painAfter) || 0,
+      duration: Number(data.duration) || 0,
+      intensity: Number(data.intensity) || 0,
+      timestamp,
+      location: (data.location as string) || 'Unknown',
+      notes: (data.notes as string) || undefined,
+    };
+
+    // ✅ Validate session data
+    const validationErrors = validateSession(session);
+    if (validationErrors.length > 0) {
+      console.warn(
+        `⚠️ Session ${id} has validation issues:`,
+        validationErrors
+      );
+      // Still return it, but log the warning
+    }
+
+    return session;
+  } catch (error) {
+    console.error(`❌ Error mapping session ${id}:`, error);
+    return null;
   }
 }
 
