@@ -17,8 +17,9 @@ import {
   Video,
   Sparkles,
   Pill,
-  User,
   Stethoscope,
+  Clock,
+  User,
 } from 'lucide-react'
 import {
   LineChart,
@@ -40,7 +41,10 @@ import {
 import { SessionNotesModal } from '@/components/SessionNotesModal'
 import { UnlinkPatientModal } from '@/components/UnlinkPatientModal'
 import { TelehealthModal } from '@/components/TelehealthModal'
+import { AIPatientSummary } from '@/components/AIPatientSummary'
 import { useAuth } from '@/contexts/AuthContext'
+import { motion } from 'framer-motion'
+import { fadeSlideUp, staggerContainer } from '@/lib/design-system/animations'
 
 type TimeRange = '7' | '30' | '90'
 
@@ -186,7 +190,12 @@ export function PatientDetailPage() {
     (new Date().getTime() - sessions[0].timestamp.getTime()) < 30 * 24 * 60 * 60 * 1000
 
   return (
-    <div className="p-6 lg:p-8 page-enter">
+    <motion.div 
+      initial="hidden"
+      animate="visible"
+      variants={staggerContainer}
+      className="p-6 lg:p-8"
+    >
       {/* Header */}
       <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-4 mb-8">
         <div>
@@ -246,8 +255,12 @@ export function PatientDetailPage() {
         </div>
       </div>
 
+      <motion.div variants={fadeSlideUp}>
+        <AIPatientSummary patient={{ ...patient, sessions, totalSessions: stats.totalSessions, avgPainRelief: stats.avgRelief }} />
+      </motion.div>
+
       {/* AI Insight */}
-      <div className="glass-card p-6 mb-8 border-l-4 border-l-purple-500 animate-slide-up" style={{ animationDelay: '0.1s' }}>
+      <motion.div variants={fadeSlideUp} className="glass-card p-6 mb-8 border-l-4 border-l-purple-500">
         <div className="flex items-start gap-3">
           <div className="p-2 bg-purple-500/15 rounded-lg text-purple-400 shrink-0 mt-0.5">
             <Sparkles className="w-5 h-5" />
@@ -270,7 +283,7 @@ export function PatientDetailPage() {
             </p>
           </div>
         </div>
-      </div>
+      </motion.div>
 
       {/* Patient Info Cards */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8 stagger-children">
@@ -463,58 +476,84 @@ export function PatientDetailPage() {
           </div>
         </div>
 
-        <div className="divide-y divide-white/5">
+        <div className="p-4 relative before:absolute before:inset-0 before:ml-10 before:-translate-x-px md:before:mx-auto md:before:translate-x-0 before:h-full before:w-0.5 before:bg-gradient-to-b before:from-transparent before:via-slate-700/50 before:to-transparent">
           {paginatedSessions.length === 0 ? (
-            <div className="p-8 text-center text-slate-400">
+            <div className="p-8 text-center text-slate-400 relative z-10">
               No sessions found.
             </div>
           ) : (
             paginatedSessions.map((session) => {
               const relief = session.painBefore - session.painAfter
+              const isGood = relief >= 4
+              const isOk = relief >= 2 && relief < 4
+              
+              const dotColor = isGood ? 'bg-emerald-500' : isOk ? 'bg-amber-500' : 'bg-red-500'
+              const glowColor = isGood ? 'shadow-emerald-500/20' : isOk ? 'shadow-amber-500/20' : 'shadow-red-500/20'
+              
               return (
                 <div
                   key={session.id}
-                  className="p-4 hover:bg-white/5 transition-colors cursor-pointer group"
+                  className="relative flex items-center justify-between md:justify-normal md:odd:flex-row-reverse group cursor-pointer mb-8 last:mb-0"
                   onClick={() => {
                     setSelectedSession(session)
                     setNotesModalOpen(true)
                   }}
                 >
-                  <div className="flex items-start justify-between">
-                    <div className="flex items-start gap-3">
-                      <div className="p-2 bg-blue-500/10 rounded-lg mt-0.5 text-blue-400 group-hover:bg-blue-500/20 transition-colors">
-                        <Activity className="w-4 h-4" />
-                      </div>
+                  {/* Timeline Dot */}
+                  <div className={cn(
+                    "flex items-center justify-center w-6 h-6 rounded-full border-4 border-slate-900 shrink-0 md:order-1 md:group-odd:-translate-x-1/2 md:group-even:translate-x-1/2 shadow-lg z-10 absolute left-6 md:left-1/2 -translate-x-1/2",
+                    dotColor, glowColor
+                  )}>
+                    <div className="w-1.5 h-1.5 bg-white rounded-full" />
+                  </div>
+                  
+                  {/* Content Card */}
+                  <div className="w-[calc(100%-4rem)] md:w-[calc(50%-2rem)] ml-14 md:ml-0 p-5 rounded-xl bg-slate-800/30 border border-slate-700/50 hover:bg-slate-800/50 transition-colors relative overflow-hidden group-hover:border-slate-600/50">
+                    {/* Severity color band */}
+                    <div className={cn("absolute left-0 top-0 bottom-0 w-1 opacity-50", dotColor)} />
+                    
+                    <div className="flex items-start justify-between mb-3">
                       <div>
                         <p className="font-medium text-slate-200 flex items-center gap-2">
-                          <span className="text-base">{getModeEmoji(session.modeId)}</span>
+                          <span className="text-lg">{getModeEmoji(session.modeId)}</span>
                           <span className="capitalize">{session.modeName || session.modeId}</span>
                         </p>
-                        <p className="text-sm text-slate-500 mt-0.5">
-                          {formatDate(session.timestamp)} &middot; {session.duration} min
+                        <p className="text-xs text-slate-500 mt-1 flex items-center gap-1.5">
+                          <Calendar className="w-3 h-3" />
+                          {formatDate(session.timestamp)}
                         </p>
                       </div>
+                      <div className="text-right">
+                        <div className="flex items-center justify-end gap-1.5 font-mono text-sm bg-slate-900/50 px-2 py-1 rounded-md border border-slate-700/50">
+                          <span className="text-red-400">{session.painBefore}</span>
+                          <span className="text-slate-500 text-[10px]">▶</span>
+                          <span className="text-emerald-400">{session.painAfter}</span>
+                        </div>
+                      </div>
                     </div>
-                    <div className="text-right">
-                      <div className="flex items-center justify-end gap-2 font-mono text-sm">
-                        <span className="text-red-400">{session.painBefore}</span>
-                        <span className="text-slate-600">&rarr;</span>
-                        <span className="text-emerald-400">{session.painAfter}</span>
+                    
+                    <div className="flex items-center justify-between mt-4 text-sm">
+                      <div className="flex items-center gap-2">
+                        <Clock className="w-4 h-4 text-slate-500" />
+                        <span className="text-slate-400">{session.duration} min</span>
                       </div>
                       <span className={cn(
-                        'text-xs font-medium inline-block mt-1',
-                        relief >= 4 ? 'text-emerald-400' :
-                        relief >= 2 ? 'text-amber-400' : 'text-slate-400'
+                        'text-xs font-semibold px-2 py-1 rounded-md',
+                        isGood ? 'bg-emerald-500/10 text-emerald-400' :
+                        isOk ? 'bg-amber-500/10 text-amber-400' : 'bg-red-500/10 text-red-400'
                       )}>
                         {relief > 0 ? `-${relief}` : relief} pts relief
                       </span>
                     </div>
+
+                    {session.notes && (
+                      <div className="mt-4 pt-3 border-t border-slate-700/50">
+                        <p className="text-sm text-slate-400 italic line-clamp-2">
+                          "{session.notes}"
+                        </p>
+                      </div>
+                    )}
                   </div>
-                  {session.notes && (
-                    <p className="mt-3 ml-[2.75rem] text-sm text-slate-400 italic border-l-2 border-white/10 pl-3 py-0.5">
-                      &ldquo;{session.notes}&rdquo;
-                    </p>
-                  )}
                 </div>
               )
             })
@@ -630,6 +669,6 @@ export function PatientDetailPage() {
         patientId={patient.id}
         doctorId={doctor?.id || 'doc123'}
       />
-    </div>
+    </motion.div>
   )
 }

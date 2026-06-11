@@ -7,7 +7,10 @@ import { collection, query, where, onSnapshot, doc, updateDoc } from 'firebase/f
 import { db } from '@/lib/firebase'
 import { cn } from '@/lib/utils'
 import { InvitePatientModal } from '@/components/InvitePatientModal'
+import { ClinicalIntelligencePanel } from '@/components/ClinicalIntelligencePanel'
 import { useNavigate } from 'react-router-dom'
+import { motion } from 'framer-motion'
+import { fadeSlideUp, staggerContainer } from '@/lib/design-system/animations'
 import {
   BarChart,
   Bar,
@@ -67,6 +70,7 @@ interface DashboardAlert {
   patientId: string
   status: string
   doctorId: string
+  timestamp?: unknown // firestore timestamp
 }
 
 export function DashboardPage() {
@@ -182,8 +186,24 @@ export function DashboardPage() {
     )
   }
 
+  // Sort alerts by urgency (high > medium > low) and then by date
+  const sortedAlerts = [...alerts].sort((a, b) => {
+    const riskWeight = { high: 3, medium: 2, low: 1 } as Record<string, number>;
+    const weightA = riskWeight[a.riskLevel] || 0;
+    const weightB = riskWeight[b.riskLevel] || 0;
+    if (weightA !== weightB) return weightB - weightA;
+    
+    // Fallback to timestamp if available
+    if (a.timestamp && b.timestamp) {
+      const timeA = (a.timestamp as { seconds: number }).seconds || 0;
+      const timeB = (b.timestamp as { seconds: number }).seconds || 0;
+      return timeB - timeA;
+    }
+    return 0;
+  });
+
   return (
-    <div className="p-6 lg:p-8 page-enter">
+    <motion.div initial="hidden" animate="visible" variants={staggerContainer} className="p-6 lg:p-8">
       {/* Header */}
       <div className="mb-8">
         <h1 className="text-2xl font-bold text-slate-100">
@@ -194,8 +214,10 @@ export function DashboardPage() {
         </p>
       </div>
 
+      <ClinicalIntelligencePanel patients={recentPatients} />
+
       {/* Stats Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8 stagger-children">
+      <motion.div variants={fadeSlideUp} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
         <StatCard
           title="Total Patients"
           value={stats?.totalPatients || 0}
@@ -222,10 +244,10 @@ export function DashboardPage() {
           color="purple"
           suffix="%"
         />
-      </div>
+      </motion.div>
 
       {/* AI Smart Alerts */}
-      <div className="glass-card p-6 mb-8 animate-slide-up" style={{ animationDelay: '0.1s' }}>
+      <motion.div variants={fadeSlideUp} className="glass-card p-6 mb-8">
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-3">
             <div className="p-2 bg-purple-500/15 rounded-lg text-purple-400">
@@ -245,15 +267,18 @@ export function DashboardPage() {
               No new alerts. AI is monitoring patients.
             </div>
           ) : (
-            alerts.map(alert => (
+            sortedAlerts.map(alert => {
+              const isHigh = alert.riskLevel === 'high' || alert.riskLevel === 'critical';
+              const isMedium = alert.riskLevel === 'medium';
+              return (
               <div key={alert.id} className={cn("p-4 border rounded-xl flex items-start gap-4", 
-                alert.riskLevel === 'high' ? "bg-red-500/10 border-red-500/20" : "bg-amber-500/10 border-amber-500/20"
+                isHigh ? "bg-red-500/10 border-red-500/20" : isMedium ? "bg-amber-500/10 border-amber-500/20" : "bg-blue-500/10 border-blue-500/20"
               )}>
-                <AlertTriangle className={cn("w-5 h-5 shrink-0 mt-0.5", alert.riskLevel === 'high' ? "text-red-400" : "text-amber-400")} />
+                <AlertTriangle className={cn("w-5 h-5 shrink-0 mt-0.5", isHigh ? "text-red-400" : isMedium ? "text-amber-400" : "text-blue-400")} />
                 <div className="flex-grow">
                   <div className="flex justify-between items-start">
-                    <h3 className={cn("font-medium", alert.riskLevel === 'high' ? "text-red-400" : "text-amber-400")}>
-                      {alert.riskLevel === 'high' ? 'High Risk Symptom' : 'Monitoring Alert'}
+                    <h3 className={cn("font-medium", isHigh ? "text-red-400" : isMedium ? "text-amber-400" : "text-blue-400")}>
+                      {isHigh ? 'Critical Alert' : isMedium ? 'Warning' : 'Notice'}
                     </h3>
                     <button 
                       onClick={() => handleDismissAlert(alert.id)}
@@ -284,13 +309,14 @@ export function DashboardPage() {
                   </div>
                 </div>
               </div>
-            ))
+            )})
           )}
         </div>
-      </div>
+      </motion.div>
 
-      {/* Weekly Activity Chart */}
-      <div className="glass-card p-6 mb-8 animate-slide-up" style={{ animationDelay: '0.2s' }}>
+      <motion.div variants={fadeSlideUp} className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        {/* Weekly Activity Chart */}
+        <div className="lg:col-span-2 glass-card p-6">
         <h2 className="text-lg font-semibold text-slate-100 mb-4">Weekly Session Activity</h2>
         <div style={{ width: '100%', minHeight: 256, height: 256 }}>
           <ResponsiveContainer width="100%" height="100%">
@@ -298,24 +324,23 @@ export function DashboardPage() {
               <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" vertical={false} />
               <XAxis dataKey="day" stroke="#64748b" fontSize={12} tickLine={false} axisLine={false} />
               <YAxis stroke="#64748b" fontSize={12} tickLine={false} axisLine={false} />
-              <Tooltip
-                cursor={{ fill: 'rgba(255,255,255,0.05)' }}
-                contentStyle={{
-                  backgroundColor: '#1e293b',
-                  border: '1px solid rgba(255,255,255,0.1)',
-                  borderRadius: '12px',
-                  boxShadow: '0 10px 25px -5px rgba(0,0,0,0.5)',
-                  color: '#f1f5f9'
-                }}
-              />
+                <Tooltip 
+                  cursor={{ fill: 'rgba(255,255,255,0.05)' }}
+                  contentStyle={{
+                    backgroundColor: 'rgba(30, 41, 59, 0.9)',
+                    backdropFilter: 'blur(10px)',
+                    border: '1px solid rgba(255,255,255,0.1)',
+                    borderRadius: '12px',
+                    boxShadow: '0 10px 25px -5px rgba(0,0,0,0.5)',
+                    color: '#f1f5f9'
+                  }}
+                />
               <Bar dataKey="sessions" fill="#3b82f6" radius={[4, 4, 0, 0]} />
             </BarChart>
           </ResponsiveContainer>
         </div>
       </div>
-
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        {/* Quick Actions */}
+      {/* Quick Actions */}
         <div className="lg:col-span-2">
           <h2 className="text-lg font-semibold text-slate-100 mb-4">Quick Actions</h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 stagger-children">
@@ -398,13 +423,13 @@ export function DashboardPage() {
             </div>
           </div>
         </div>
-      </div>
+      </motion.div>
 
       {/* Invite Modal */}
       <InvitePatientModal
         isOpen={inviteModalOpen}
         onClose={() => setInviteModalOpen(false)}
       />
-    </div>
+    </motion.div>
   )
 }

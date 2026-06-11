@@ -28,6 +28,7 @@ export interface PatientWithStats extends Patient {
   totalSessions: number
   avgPainRelief: number
   lastSessionDate?: Date
+  sessions?: Session[]
 }
 
 export interface Session {
