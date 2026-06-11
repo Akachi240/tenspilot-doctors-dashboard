@@ -1,10 +1,24 @@
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import { App } from '@/App'
+import { ErrorBoundary } from '@/components/ErrorBoundary'
 import '@/index.css'
 
-createRoot(document.getElementById('root')!).render(
+createRoot(document.getElementById('root')!, {
+  onRecoverableError: (error, errorInfo) => {
+    // Suppress hydration warnings caused by browser extensions
+    if (
+      error instanceof Error &&
+      (error.message.includes('Hydration') || error.message.includes('hydration'))
+    ) {
+      return;
+    }
+    console.error(error, errorInfo);
+  }
+}).render(
   <StrictMode>
-    <App />
+    <ErrorBoundary>
+      <App />
+    </ErrorBoundary>
   </StrictMode>
 )
