@@ -149,7 +149,7 @@ export async function fetchPatientPainLogs(patientId: string): Promise<PainLog[]
       const ts = data.timestamp as Timestamp | Date | undefined
       let timestamp: Date | undefined
       if (ts instanceof Date) timestamp = ts
-      else if (ts && typeof ts === 'object' && 'toDate' in ts) timestamp = (ts as any).toDate()
+      else if (ts && typeof ts === 'object' && 'toDate' in ts) timestamp = (ts as Timestamp).toDate()
 
       return {
         id: doc.id,
@@ -360,7 +360,7 @@ function mapSession(id: string, data: Record<string, unknown>): Session | null {
     if (ts instanceof Date) {
       timestamp = ts;
     } else if (ts && typeof ts === 'object' && 'toDate' in ts) {
-      timestamp = (ts as any).toDate();
+      timestamp = (ts as Timestamp).toDate();
     }
 
     // Validate required fields
@@ -429,7 +429,12 @@ function mapPatient(doc: DocumentSnapshot): Patient {
     email: (data.email as string) || '',
     name: (data.name as string) || (data.displayName as string) || `Patient ${doc.id.slice(0, 6)}`,
     condition: data.condition as string | undefined,
+    medications: (data.medications as string[]) || [],
+    age: data.age as number | undefined,
+    dateOfBirth: data.dateOfBirth as string | undefined,
+    supervisingPhysician: data.supervisingPhysician as string | undefined,
     linkedDoctorId: data.linkedDoctorId as string | undefined,
     createdAt: (data.createdAt as Timestamp)?.toDate(),
+    updatedAt: (data.updatedAt as Timestamp)?.toDate?.() || (typeof data.updatedAt === 'string' ? new Date(data.updatedAt) : undefined),
   }
 }

@@ -16,6 +16,9 @@ import {
   MessageSquare,
   Video,
   Sparkles,
+  Pill,
+  User,
+  Stethoscope,
 } from 'lucide-react'
 import {
   LineChart,
@@ -252,8 +255,18 @@ export function PatientDetailPage() {
           <div>
             <h3 className="font-semibold text-purple-400 mb-1">AI Patient Insight</h3>
             <p className="text-sm text-slate-300">
-              {patient.name} has shown a consistent decrease in pain levels over the last 14 days when using the TENS device. 
-              Adherence is excellent. Consider adjusting the therapy schedule to a lower frequency if progress continues.
+              {sessions.length > 0 ? (
+                <>{patient.name} has completed {sessions.length} session{sessions.length !== 1 ? 's' : ''} with an average pain relief of {stats.avgRelief} points. 
+                {stats.avgRelief >= 3 
+                  ? 'Pain relief trends are excellent. Consider adjusting the therapy schedule to a lower frequency if progress continues.' 
+                  : stats.avgRelief >= 1 
+                    ? 'Moderate improvement observed. Consider reviewing electrode placement and intensity settings.' 
+                    : 'Minimal improvement detected. A clinical review of the therapy plan is recommended.'}
+                {patient.medications && patient.medications.length > 0 && ` Currently on ${patient.medications.length} medication${patient.medications.length !== 1 ? 's' : ''}.`}
+                </>
+              ) : (
+                <>{patient.name} has no recorded sessions yet. Encourage the patient to begin their first TENS therapy session.</>
+              )}
             </p>
           </div>
         </div>
@@ -277,7 +290,36 @@ export function PatientDetailPage() {
               <Calendar className="w-4 h-4 text-slate-400" />
               <span className="text-sm text-slate-300">Enrolled {formatDate(patient.createdAt)}</span>
             </div>
+            {patient.age && (
+              <div className="flex items-center gap-3">
+                <User className="w-4 h-4 text-slate-400" />
+                <span className="text-sm text-slate-300">Age: {patient.age}</span>
+              </div>
+            )}
+            {patient.supervisingPhysician && (
+              <div className="flex items-center gap-3">
+                <Stethoscope className="w-4 h-4 text-slate-400" />
+                <span className="text-sm text-slate-300">Dr. {patient.supervisingPhysician}</span>
+              </div>
+            )}
           </div>
+        </div>
+
+        {/* Medications Card */}
+        <div className="glass-card p-6">
+          <h3 className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-4">Medications</h3>
+          {patient.medications && patient.medications.length > 0 ? (
+            <div className="flex flex-wrap gap-2">
+              {patient.medications.map((med, i) => (
+                <span key={i} className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-indigo-500/10 text-indigo-300 border border-indigo-500/20 rounded-full text-xs font-medium">
+                  <Pill className="w-3 h-3" />
+                  {med}
+                </span>
+              ))}
+            </div>
+          ) : (
+            <p className="text-sm text-slate-500 italic">No medications recorded</p>
+          )}
         </div>
 
         {/* Stats Cards */}

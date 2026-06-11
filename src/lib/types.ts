@@ -14,8 +14,13 @@ export interface Patient {
   email: string
   name: string
   condition?: string
+  medications?: string[]
+  age?: number
+  dateOfBirth?: string
+  supervisingPhysician?: string
   linkedDoctorId?: string
   createdAt?: Date
+  updatedAt?: Date
   displayName?: string
 }
 
