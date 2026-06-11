@@ -3,9 +3,15 @@ import { useEffect, useRef, useState } from 'react'
 import { doc, setDoc, onSnapshot, serverTimestamp } from 'firebase/firestore'
 import { db } from '@/lib/firebase'
 
+interface JitsiApi {
+  dispose: () => void
+  addListener: (_event: string, _callback: () => void) => void
+}
+
 declare global {
+  // eslint-disable-next-line no-unused-vars
   interface Window {
-    JitsiMeetExternalAPI: any
+    JitsiMeetExternalAPI: new (_domain: string, _options: Record<string, unknown>) => JitsiApi
   }
 }
 
@@ -19,21 +25,19 @@ interface TelehealthModalProps {
 }
 
 export function TelehealthModal({ isOpen, onClose, patientName, patientId, doctorId, isIncoming = false }: TelehealthModalProps) {
-  const [callStatus, setCallStatus] = useState<'ringing' | 'active' | 'ended'>('ended')
-  const [roomName, setRoomName] = useState('')
+  const [callStatus, setCallStatus] = useState<'ringing' | 'active' | 'ended'>(isIncoming ? 'active' : 'ended')
+  const roomName = `TensPilot_Consult_${doctorId}_${patientId}`
   const jitsiContainerRef = useRef<HTMLDivElement>(null)
-  const jitsiApiRef = useRef<any>(null)
+  const jitsiApiRef = useRef<JitsiApi | null>(null)
 
   // Manage call lifecycle and Firestore status
   useEffect(() => {
     if (!isOpen) return
 
     const roomId = `TensPilot_Consult_${doctorId}_${patientId}`
-    setRoomName(roomId)
     const consultationRef = doc(db, 'consultations', roomId)
 
     if (isIncoming) {
-      setCallStatus('active')
       setDoc(consultationRef, { status: 'active' }, { merge: true }).catch(console.error)
     } else {
       const startCall = async () => {

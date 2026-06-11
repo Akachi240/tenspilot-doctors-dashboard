@@ -1,15 +1,17 @@
+import React, { Suspense } from 'react'
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { AuthProvider, useAuth } from '@/contexts/AuthContext'
 import { LoginPage } from '@/pages/LoginPage'
 import { CreateProfilePage } from '@/pages/CreateProfilePage'
-import { DashboardPage } from '@/pages/DashboardPage'
-import { PatientsPage } from '@/pages/PatientsPage'
-import { PatientDetailPage } from '@/pages/PatientDetailPage'
-import { ReportsPage } from '@/pages/ReportsPage'
-import { SettingsPage } from '@/pages/SettingsPage'
-import { MessagesPage } from '@/pages/MessagesPage'
 import { DashboardLayout } from '@/components/DashboardLayout'
 import { Loader2 } from 'lucide-react'
+
+const DashboardPage = React.lazy(() => import('@/pages/DashboardPage').then(m => ({ default: m.DashboardPage })))
+const PatientsPage = React.lazy(() => import('@/pages/PatientsPage').then(m => ({ default: m.PatientsPage })))
+const PatientDetailPage = React.lazy(() => import('@/pages/PatientDetailPage').then(m => ({ default: m.PatientDetailPage })))
+const ReportsPage = React.lazy(() => import('@/pages/ReportsPage').then(m => ({ default: m.ReportsPage })))
+const SettingsPage = React.lazy(() => import('@/pages/SettingsPage').then(m => ({ default: m.SettingsPage })))
+const MessagesPage = React.lazy(() => import('@/pages/MessagesPage').then(m => ({ default: m.MessagesPage })))
 
 function LoadingScreen() {
   return (
@@ -106,12 +108,54 @@ function AppRoutes() {
         }
       >
         <Route index element={<Navigate to="/dashboard" replace />} />
-        <Route path="dashboard" element={<DashboardPage />} />
-        <Route path="patients" element={<PatientsPage />} />
-        <Route path="patients/:patientId" element={<PatientDetailPage />} />
-        <Route path="messages" element={<MessagesPage />} />
-        <Route path="reports" element={<ReportsPage />} />
-        <Route path="settings" element={<SettingsPage />} />
+        <Route
+          path="dashboard"
+          element={
+            <Suspense fallback={<LoadingScreen />}>
+              <DashboardPage />
+            </Suspense>
+          }
+        />
+        <Route
+          path="patients"
+          element={
+            <Suspense fallback={<LoadingScreen />}>
+              <PatientsPage />
+            </Suspense>
+          }
+        />
+        <Route
+          path="patients/:patientId"
+          element={
+            <Suspense fallback={<LoadingScreen />}>
+              <PatientDetailPage />
+            </Suspense>
+          }
+        />
+        <Route
+          path="messages"
+          element={
+            <Suspense fallback={<LoadingScreen />}>
+              <MessagesPage />
+            </Suspense>
+          }
+        />
+        <Route
+          path="reports"
+          element={
+            <Suspense fallback={<LoadingScreen />}>
+              <ReportsPage />
+            </Suspense>
+          }
+        />
+        <Route
+          path="settings"
+          element={
+            <Suspense fallback={<LoadingScreen />}>
+              <SettingsPage />
+            </Suspense>
+          }
+        />
       </Route>
 
       {/* Catch all */}

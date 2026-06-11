@@ -1,3 +1,4 @@
+/* eslint-disable react-refresh/only-export-components */
 import { createContext, useContext, useEffect, useState, type ReactNode } from 'react'
 import {
   onAuthStateChanged,
@@ -20,14 +21,14 @@ interface AuthContextType {
   doctor: Doctor | null
   loading: boolean
   needsProfile: boolean
-  signIn: (email: string, password: string) => Promise<void>
-  signUp: (email: string, password: string) => Promise<void>
+  signIn: (_email: string, _password: string) => Promise<void>
+  signUp: (_email: string, _password: string) => Promise<void>
   logout: () => Promise<void>
-  createDoctorProfile: (name: string, specialty: string) => Promise<void>
-  updateDoctorProfile: (data: Partial<Doctor>) => Promise<void>
-  changePassword: (currentPassword: string, newPassword: string) => Promise<void>
+  createDoctorProfile: (_name: string, _specialty: string) => Promise<void>
+  updateDoctorProfile: (_data: Partial<Doctor>) => Promise<void>
+  changePassword: (_currentPassword: string, _newPassword: string) => Promise<void>
   deleteAccount: () => Promise<void>
-  resetPassword: (email: string) => Promise<void>
+  resetPassword: (_email: string) => Promise<void>
 }
 
 const AuthContext = createContext<AuthContextType | null>(null)
@@ -110,7 +111,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     
     try {
       await Promise.race([
-        setDoc(doc(db, 'doctors', user.uid), profileData as Record<string, any>),
+        setDoc(doc(db, 'doctors', user.uid), profileData as Record<string, unknown>),
         timeoutPromise
       ]);
     } catch (err) {
@@ -129,7 +130,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const updateDoctorProfile = async (data: Partial<Doctor>) => {
     if (!user) throw new Error('Not authenticated')
-    const updateData: Record<string, any> = {}
+    const updateData: Record<string, unknown> = {}
     if (data.name !== undefined) updateData.name = data.name
     if (data.specialty !== undefined) updateData.specialty = data.specialty
     if (data.phone !== undefined) updateData.phone = data.phone

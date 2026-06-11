@@ -1,4 +1,5 @@
-import { collection, getDocs, updateDoc, doc, Timestamp } from 'firebase/firestore';
+/* eslint-disable no-console */
+import { collection, getDocs, updateDoc, doc } from 'firebase/firestore';
 import { db } from '../src/lib/firebase';
 
 /**
@@ -20,7 +21,7 @@ export async function migrateSessions() {
     if (needsMigration) {
       console.log(`Migrating session ${sessionDoc.id}...`);
       
-      const updates: Record<string, any> = {
+      const updates: Record<string, unknown> = {
         location: data.placement || data.location || 'Unknown',
         // Copy other nested parameters if needed
         duration: data.duration || data.parameters?.duration || 0,

@@ -23,17 +23,12 @@ export function ReportsPage() {
 
   const [generating, setGenerating] = useState(false)
   const [selectedPatientId, setSelectedPatientId] = useState<string>('')
-  const [startDate, setStartDate] = useState<string>('')
-  const [endDate, setEndDate] = useState<string>('')
+  const defaultEnd = new Date()
+  const defaultStart = new Date()
+  defaultStart.setDate(defaultStart.getDate() - 30)
 
-  useEffect(() => {
-    // Set default date range (last 30 days)
-    const end = new Date()
-    const start = new Date()
-    start.setDate(start.getDate() - 30)
-    setEndDate(end.toISOString().split('T')[0])
-    setStartDate(start.toISOString().split('T')[0])
-  }, [])
+  const [startDate, setStartDate] = useState<string>(defaultStart.toISOString().split('T')[0])
+  const [endDate, setEndDate] = useState<string>(defaultEnd.toISOString().split('T')[0])
 
   useEffect(() => {
     if (!doctor) return

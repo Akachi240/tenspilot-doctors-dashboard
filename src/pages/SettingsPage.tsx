@@ -84,6 +84,15 @@ export function SettingsPage() {
     }
   })
 
+  const [prevDoctorId, setPrevDoctorId] = useState(doctor?.id)
+  
+  if (doctor?.id !== prevDoctorId) {
+    setPrevDoctorId(doctor?.id)
+    if (doctor?.notifications) {
+      setNotifications(doctor.notifications)
+    }
+  }
+
   useEffect(() => {
     if (doctor) {
       profileForm.reset({
@@ -92,9 +101,8 @@ export function SettingsPage() {
         phone: doctor.phone || '',
         clinic: doctor.clinic || '',
       })
-      if (doctor.notifications) setNotifications(doctor.notifications)
     }
-  }, [doctor, profileForm, passwordForm])
+  }, [doctor, profileForm])
 
   const handleProfileUpdate = async (data: ProfileFormData) => {
     setProfileLoading(true)

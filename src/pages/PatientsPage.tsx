@@ -107,7 +107,7 @@ export function PatientsPage() {
     return result
   }, [patients, searchQuery, sortField, sortDirection, statusFilter])
 
-  const SortIcon = ({ field }: { field: SortField }) => {
+  const renderSortIcon = (field: SortField) => {
     if (sortField !== field) return null
     return sortDirection === 'asc' ? (
       <ChevronUp className="w-4 h-4" />
@@ -208,7 +208,7 @@ export function PatientsPage() {
                       className="flex items-center gap-1 hover:text-slate-200 transition-colors"
                     >
                       Patient
-                      <SortIcon field="name" />
+                      {renderSortIcon('name')}
                     </button>
                   </th>
                   <th className="text-left">
@@ -220,7 +220,7 @@ export function PatientsPage() {
                       className="flex items-center gap-1 hover:text-slate-200 transition-colors"
                     >
                       Sessions
-                      <SortIcon field="totalSessions" />
+                      {renderSortIcon('totalSessions')}
                     </button>
                   </th>
                   <th className="text-left">
@@ -229,7 +229,7 @@ export function PatientsPage() {
                       className="flex items-center gap-1 hover:text-slate-200 transition-colors"
                     >
                       Avg Relief
-                      <SortIcon field="avgRelief" />
+                      {renderSortIcon('avgRelief')}
                     </button>
                   </th>
                   <th className="text-left">
@@ -238,7 +238,7 @@ export function PatientsPage() {
                       className="flex items-center gap-1 hover:text-slate-200 transition-colors"
                     >
                       Compliance
-                      <SortIcon field="compliance" />
+                      {renderSortIcon('compliance')}
                     </button>
                   </th>
                   <th className="text-left">
@@ -247,7 +247,7 @@ export function PatientsPage() {
                       className="flex items-center gap-1 hover:text-slate-200 transition-colors"
                     >
                       Last Session
-                      <SortIcon field="lastSession" />
+                      {renderSortIcon('lastSession')}
                     </button>
                   </th>
                   <th className="text-right">

@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { X, Loader2 } from 'lucide-react'
 import type { Session } from '@/lib/types'
 import { updateSessionNotes } from '@/lib/firestore'
@@ -8,7 +8,7 @@ interface SessionNotesModalProps {
   isOpen: boolean
   session: Session | null
   onClose: () => void
-  onUpdate: (sessionId: string, newNotes: string) => void
+  onUpdate: (_sessionId: string, _newNotes: string) => void
 }
 
 export function SessionNotesModal({
@@ -19,12 +19,12 @@ export function SessionNotesModal({
 }: SessionNotesModalProps) {
   const [notes, setNotes] = useState(session?.notes || '')
   const [saving, setSaving] = useState(false)
+  const [prevSessionId, setPrevSessionId] = useState(session?.id)
 
-  useEffect(() => {
-    if (session) {
-      setNotes(session.notes || '')
-    }
-  }, [session])
+  if (session?.id !== prevSessionId) {
+    setPrevSessionId(session?.id)
+    setNotes(session?.notes || '')
+  }
 
   if (!isOpen || !session) return null
 

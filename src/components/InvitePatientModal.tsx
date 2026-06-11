@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { X, Copy, Check, Loader2 } from 'lucide-react'
 import { useAuth } from '@/contexts/AuthContext'
 import { createAccessCode, fetchAccessCodes } from '@/lib/firestore'
@@ -18,13 +18,7 @@ export function InvitePatientModal({ isOpen, onClose }: InvitePatientModalProps)
   const [codes, setCodes] = useState<DoctorPatientLink[]>([])
   const [newCode, setNewCode] = useState<string | null>(null)
 
-  useEffect(() => {
-    if (isOpen && doctor) {
-      loadCodes()
-    }
-  }, [isOpen, doctor])
-
-  const loadCodes = async () => {
+  const loadCodes = useCallback(async () => {
     if (!doctor) return
     setLoading(true)
     try {
@@ -35,7 +29,14 @@ export function InvitePatientModal({ isOpen, onClose }: InvitePatientModalProps)
     } finally {
       setLoading(false)
     }
-  }
+  }, [doctor])
+
+  useEffect(() => {
+    if (isOpen && doctor) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      loadCodes()
+    }
+  }, [isOpen, doctor, loadCodes])
 
   const handleGenerateCode = async () => {
     if (!doctor) return

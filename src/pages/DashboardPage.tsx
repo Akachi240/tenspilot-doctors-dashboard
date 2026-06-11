@@ -59,6 +59,16 @@ function StatCard({ title, value, icon: Icon, color, suffix }: StatCardProps) {
   )
 }
 
+interface DashboardAlert {
+  id: string
+  riskLevel: string
+  message: string
+  aiResponse: string
+  patientId: string
+  status: string
+  doctorId: string
+}
+
 export function DashboardPage() {
   const { doctor } = useAuth()
   const navigate = useNavigate()
@@ -69,7 +79,7 @@ export function DashboardPage() {
   const [loadingPhase, setLoadingPhase] = useState('Initializing...')
   const [progress, setProgress] = useState(0)
   const [loading, setLoading] = useState(true)
-  const [alerts, setAlerts] = useState<any[]>([])
+  const [alerts, setAlerts] = useState<DashboardAlert[]>([])
 
   useEffect(() => {
     if (!doctor) return
