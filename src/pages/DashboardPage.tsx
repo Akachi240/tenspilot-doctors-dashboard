@@ -89,7 +89,7 @@ export function DashboardPage() {
       where('status', '==', 'unread')
     )
     const unsubscribe = onSnapshot(qAlerts, (snapshot) => {
-      setAlerts(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })))
+      setAlerts(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as DashboardAlert)))
     })
     return () => unsubscribe()
   }, [doctor])

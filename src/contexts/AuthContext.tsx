@@ -111,7 +111,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     
     try {
       await Promise.race([
-        setDoc(doc(db, 'doctors', user.uid), profileData as Record<string, unknown>),
+        setDoc(doc(db, 'doctors', user.uid), profileData),
         timeoutPromise
       ]);
     } catch (err) {
@@ -130,7 +130,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const updateDoctorProfile = async (data: Partial<Doctor>) => {
     if (!user) throw new Error('Not authenticated')
-    const updateData: Record<string, unknown> = {}
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const updateData: Record<string, any> = {}
     if (data.name !== undefined) updateData.name = data.name
     if (data.specialty !== undefined) updateData.specialty = data.specialty
     if (data.phone !== undefined) updateData.phone = data.phone

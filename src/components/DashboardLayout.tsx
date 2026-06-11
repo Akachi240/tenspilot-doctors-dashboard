@@ -33,7 +33,8 @@ export function DashboardLayout() {
   const navigate = useNavigate()
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [inviteModalOpen, setInviteModalOpen] = useState(false)
-  const [incomingCall, setIncomingCall] = useState<Record<string, unknown> | null>(null)
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const [incomingCall, setIncomingCall] = useState<Record<string, any> | null>(null)
   const [callModalOpen, setCallModalOpen] = useState(false)
   const [unreadAlertsCount, setUnreadAlertsCount] = useState(0)
 
@@ -48,7 +49,8 @@ export function DashboardLayout() {
 
     const unsubscribe = onSnapshot(q, (snapshot) => {
       if (!snapshot.empty) {
-        setIncomingCall(snapshot.docs[0].data() as Record<string, unknown>)
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        setIncomingCall(snapshot.docs[0].data() as Record<string, any>)
       } else {
         setIncomingCall((prev) => {
           if (prev && !callModalOpen) {

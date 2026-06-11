@@ -20,7 +20,8 @@ describe('firestore service', () => {
 
   describe('fetchDoctorPatients', () => {
     it('returns empty array when no links exist', async () => {
-      vi.mocked(getDocs).mockResolvedValueOnce({ docs: [] } as unknown as ReturnType<typeof getDocs>);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      vi.mocked(getDocs).mockResolvedValueOnce({ docs: [] } as any);
       const result = await fetchDoctorPatients('doc123');
       expect(result.patients).toEqual([]);
       expect(result.allSessions).toEqual([]);

@@ -36,13 +36,5 @@ export default defineConfig({
     },
     sourcemap: false,
     chunkSizeWarningLimit: 500,
-    rollupOptions: {
-      output: {
-        manualChunks: {
-          'vendor-firebase': ['firebase/app', 'firebase/auth', 'firebase/firestore'],
-          'vendor-charts': ['recharts'],
-        },
-      },
-    },
   },
 })
