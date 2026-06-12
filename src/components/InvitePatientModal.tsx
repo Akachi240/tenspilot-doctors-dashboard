@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react'
-import { X, Copy, Check, Loader2 } from 'lucide-react'
+import { X, Copy, Check, Loader2, AlertCircle } from 'lucide-react'
 import { useAuth } from '@/contexts/AuthContext'
 import { createAccessCode, fetchAccessCodes } from '@/lib/firestore'
 import type { DoctorPatientLink } from '@/lib/types'
@@ -17,15 +17,18 @@ export function InvitePatientModal({ isOpen, onClose }: InvitePatientModalProps)
   const [copied, setCopied] = useState(false)
   const [codes, setCodes] = useState<DoctorPatientLink[]>([])
   const [newCode, setNewCode] = useState<string | null>(null)
+  const [error, setError] = useState<string | null>(null)
 
   const loadCodes = useCallback(async () => {
     if (!doctor) return
     setLoading(true)
+    setError(null)
     try {
       const fetchedCodes = await fetchAccessCodes(doctor.id)
       setCodes(fetchedCodes)
     } catch (error) {
-      console.error('Failed to load access codes:', error)
+      console.error('❌ Failed to load access codes:', error)
+      setError('Failed to load codes. Please try again.')
     } finally {
       setLoading(false)
     }
@@ -39,24 +42,72 @@ export function InvitePatientModal({ isOpen, onClose }: InvitePatientModalProps)
   }, [isOpen, doctor, loadCodes])
 
   const handleGenerateCode = async () => {
-    if (!doctor) return
+    if (!doctor) {
+      setError('Doctor information not loaded')
+      return
+    }
+
     setGenerating(true)
+    setError(null)
+    setNewCode(null)
+
+    // Safety timeout to prevent infinite hanging
+    const timeoutId = setTimeout(() => {
+      setGenerating(false)
+      setError('Code generation timed out. Check your internet connection and try again.')
+      console.error('⏱️ Code generation timeout after 15 seconds')
+    }, 15000)
+
     try {
       const link = await createAccessCode(doctor.id)
+
+      if (!link || !link.accessCode) {
+        throw new Error('Invalid response: No access code received')
+      }
+
       setNewCode(link.accessCode)
+      setError(null)
+
+      // Reload the codes list
       await loadCodes()
     } catch (error: unknown) {
-      console.error('Failed to generate code:', error)
-      alert('Error generating code: ' + (error instanceof Error ? error.message : 'Unknown error'))
+      console.error('❌ Failed to generate code:', error)
+
+      let errorMessage = 'Error generating code'
+
+      if (error instanceof Error) {
+        console.error('Error message:', error.message)
+        console.error('Error stack:', error.stack)
+
+        if (error.message.includes('timeout') || error.message.includes('Timeout')) {
+          errorMessage = 'Request timed out — backend may be slow or offline'
+        } else if (error.message.includes('permission') || error.message.includes('Permission') || error.message.includes('PERMISSION_DENIED')) {
+          errorMessage = 'Permission denied — check Firebase security rules'
+        } else if (error.message.includes('network') || error.message.includes('offline')) {
+          errorMessage = 'Network error — check your internet connection'
+        } else if (error.message.includes('QUOTA')) {
+          errorMessage = 'Quota exceeded — too many requests'
+        } else {
+          errorMessage = error.message
+        }
+      }
+
+      setError(errorMessage)
     } finally {
+      clearTimeout(timeoutId)
       setGenerating(false)
     }
   }
 
   const copyToClipboard = async (code: string) => {
-    await navigator.clipboard.writeText(code)
-    setCopied(true)
-    setTimeout(() => setCopied(false), 2000)
+    try {
+      await navigator.clipboard.writeText(code)
+      setCopied(true)
+      setTimeout(() => setCopied(false), 2000)
+    } catch (error) {
+      console.error('Failed to copy:', error)
+      alert('Failed to copy to clipboard')
+    }
   }
 
   if (!isOpen) return null
@@ -79,6 +130,20 @@ export function InvitePatientModal({ isOpen, onClose }: InvitePatientModalProps)
 
         {/* Content */}
         <div className="p-4 space-y-5 max-h-[60vh] overflow-y-auto">
+          {/* Error Alert */}
+          {error && (
+            <div className="flex items-start gap-3 p-4 bg-red-500/10 border border-red-500/30 rounded-lg">
+              <AlertCircle className="w-5 h-5 text-red-400 mt-0.5 shrink-0" />
+              <div>
+                <p className="font-medium text-red-300">Error</p>
+                <p className="text-sm text-red-400/80 mt-1">{error}</p>
+                <p className="text-xs text-red-400/60 mt-2">
+                  Check console (F12) for more details
+                </p>
+              </div>
+            </div>
+          )}
+
           {/* Generate New Code */}
           <div className="bg-blue-500/10 border border-blue-500/20 rounded-lg p-5">
             <p className="text-sm text-blue-200/80 mb-4">
@@ -92,7 +157,7 @@ export function InvitePatientModal({ isOpen, onClose }: InvitePatientModalProps)
               {generating ? (
                 <>
                   <Loader2 className="w-4 h-4 spinner" />
-                  Generating...
+                  Generating... (may take a few seconds)
                 </>
               ) : (
                 'Generate New Code'
@@ -101,9 +166,9 @@ export function InvitePatientModal({ isOpen, onClose }: InvitePatientModalProps)
           </div>
 
           {/* New Code Display */}
-          {newCode && (
+          {newCode && !error && (
             <div className="bg-emerald-500/10 border border-emerald-500/30 rounded-lg p-5">
-              <p className="text-sm text-emerald-400 mb-3 font-medium">New code generated!</p>
+              <p className="text-sm text-emerald-400 mb-3 font-medium">✅ New code generated!</p>
               <div className="flex items-center justify-between">
                 <span className="text-3xl font-mono font-bold text-emerald-400 tracking-[0.2em]">
                   {newCode}

@@ -255,39 +255,66 @@ export async function fetchDashboardStats(doctorId: string): Promise<DashboardSt
 
 /** Create a new patient access code */
 export async function createAccessCode(doctorId: string): Promise<DoctorPatientLink> {
-  const code = generateAccessCode()
-
-  const linkData = {
-    accessCode: code,
-    doctorId,
-    patientId: null,
-    createdAt: serverTimestamp(),
-    status: 'active',
+  if (!doctorId) {
+    throw new Error('Doctor ID is required')
   }
 
-  const timeoutPromise = new Promise<never>((_, reject) => 
-    setTimeout(() => reject(new Error('Network timeout: Could not connect to database. Please disable any AdBlockers or VPNs.')), 8000)
-  );
+  try {
+    const code = generateAccessCode()
 
-  const docRef = await Promise.race([
-    addDoc(collection(db, 'doctorPatientLinks'), linkData),
-    timeoutPromise
-  ]);
+    const linkData = {
+      accessCode: code,
+      doctorId,
+      patientId: null,
+      createdAt: serverTimestamp(),
+      status: 'active',
+    }
 
-  return {
-    id: docRef.id,
-    accessCode: code,
-    doctorId,
-    patientId: null,
-    createdAt: new Date(),
-    status: 'active',
+    const timeoutPromise = new Promise<never>((_, reject) => 
+      setTimeout(() => reject(new Error('Network timeout: Could not connect to database. Please disable any AdBlockers or VPNs.')), 10000)
+    );
+
+    const docRef = await Promise.race([
+      addDoc(collection(db, 'doctorPatientLinks'), linkData),
+      timeoutPromise
+    ]);
+
+    return {
+      id: docRef.id,
+      accessCode: code,
+      doctorId,
+      patientId: null,
+      createdAt: new Date(),
+      status: 'active',
+    }
+  } catch (error) {
+    console.error('❌ Error creating access code:', error)
+
+    if (error instanceof Error) {
+      if (error.message.includes('Permission denied') || error.message.includes('PERMISSION_DENIED')) {
+        throw new Error('Permission denied: Check your Firestore security rules. The doctorId must match the authenticated user.', { cause: error })
+      }
+      if (error.message.includes('offline')) {
+        throw new Error('You appear to be offline. Check your internet connection.', { cause: error })
+      }
+      if (error.message.includes('QUOTA')) {
+        throw new Error('Quota exceeded: Too many requests. Please try again later.', { cause: error })
+      }
+      throw error
+    }
+
+    throw new Error('Failed to create access code: Unknown error', { cause: error })
   }
 }
 
 /** Fetch recent access codes for a doctor */
 export async function fetchAccessCodes(doctorId: string): Promise<DoctorPatientLink[]> {
+  if (!doctorId) {
+    throw new Error('Doctor ID is required')
+  }
+
   const timeoutPromise = new Promise<never>((_, reject) => 
-    setTimeout(() => reject(new Error('Network timeout: Could not fetch access codes')), 8000)
+    setTimeout(() => reject(new Error('Network timeout: Could not fetch access codes')), 10000)
   );
 
   try {
@@ -300,7 +327,7 @@ export async function fetchAccessCodes(doctorId: string): Promise<DoctorPatientL
     const snapshot = await Promise.race([getDocs(codesQuery), timeoutPromise]);
     return snapshot.docs.map((d) => mapLink(d.id, d.data()))
   } catch (err) {
-    console.warn("Failed to fetch ordered access codes, trying fallback...", err);
+    console.warn("⚠️ Failed to fetch ordered access codes, trying fallback...", err);
     try {
       // Fallback without orderBy
       const fallbackQuery = query(
@@ -310,7 +337,7 @@ export async function fetchAccessCodes(doctorId: string): Promise<DoctorPatientL
       const snapshot = await Promise.race([getDocs(fallbackQuery), timeoutPromise]);
       return snapshot.docs.map((d) => mapLink(d.id, d.data()))
     } catch (fallbackErr) {
-      console.error("Fallback fetch also failed:", fallbackErr);
+      console.error("❌ Fallback fetch also failed:", fallbackErr);
       return [];
     }
   }
