@@ -1,3 +1,6 @@
 {
-  "name": "tenspilot-doctor-dashboard"
+  "name": "tenspilot-doctor-dashboard",
+  "rewrites": [
+    { "source": "/(.*)", "destination": "/index.html" }
+  ]
 }
