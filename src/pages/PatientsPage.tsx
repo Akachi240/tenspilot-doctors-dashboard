@@ -10,8 +10,8 @@ import {
   Filter,
 } from 'lucide-react'
 import { useAuth } from '@/contexts/AuthContext'
-import { fetchDoctorPatients } from '@/lib/firestore'
 import type { PatientWithStats } from '@/lib/types'
+import { useDoctorData } from '@/hooks/useDoctorData'
 import { cn } from '@/lib/utils'
 import { InvitePatientModal } from '@/components/InvitePatientModal'
 
@@ -22,29 +22,12 @@ type StatusFilter = 'all' | 'active' | 'inactive'
 export function PatientsPage() {
   const { doctor } = useAuth()
   const navigate = useNavigate()
-  const [patients, setPatients] = useState<PatientWithStats[]>([])
-  const [loading, setLoading] = useState(true)
   const [searchQuery, setSearchQuery] = useState('')
   const [sortField, setSortField] = useState<SortField>('lastSession')
   const [sortDirection, setSortDirection] = useState<SortDirection>('desc')
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('all')
   const [inviteModalOpen, setInviteModalOpen] = useState(false)
-
-  useEffect(() => {
-    if (!doctor) return
-    const loadPatients = async () => {
-      setLoading(true)
-      try {
-        const { patients: docs } = await fetchDoctorPatients(doctor.id)
-        setPatients(docs)
-      } catch (err) {
-        console.error(err)
-      } finally {
-        setLoading(false)
-      }
-    }
-    loadPatients()
-  }, [doctor])
+  const { patients, loading } = useDoctorData(doctor?.id)
 
   const handleSort = (field: SortField) => {
     if (sortField === field) {

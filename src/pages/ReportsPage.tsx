@@ -3,8 +3,8 @@ import { FileText, Download, Loader2, Calendar } from 'lucide-react'
 import { jsPDF } from 'jspdf'
 import autoTable from 'jspdf-autotable'
 import { useAuth } from '@/contexts/AuthContext'
-import { fetchDoctorPatients, fetchPatientSessions } from '@/lib/firestore'
-import type { PatientWithStats } from '@/lib/types'
+import type { PatientWithStats, Session } from '@/lib/types'
+import { useDoctorData } from '@/hooks/useDoctorData'
 import { formatDate, getModeEmoji, cn } from '@/lib/utils'
 import {
   BarChart,
@@ -18,7 +18,6 @@ import {
 
 export function ReportsPage() {
   const { doctor } = useAuth()
-  const [patients, setPatients] = useState<PatientWithStats[]>([])
   const [loading, setLoading] = useState(true)
 
   const [generating, setGenerating] = useState(false)
@@ -30,24 +29,14 @@ export function ReportsPage() {
   const [startDate, setStartDate] = useState<string>(defaultStart.toISOString().split('T')[0])
   const [endDate, setEndDate] = useState<string>(defaultEnd.toISOString().split('T')[0])
 
+  const { patients, allSessions, loading: dataLoading } = useDoctorData(doctor?.id)
+
   useEffect(() => {
-    if (!doctor) return
-    const loadPatients = async () => {
-      setLoading(true)
-      try {
-        const { patients: docs } = await fetchDoctorPatients(doctor.id)
-        setPatients(docs)
-        if (docs.length > 0 && !selectedPatientId) {
-          setSelectedPatientId(docs[0].id)
-        }
-      } catch (err) {
-        console.error(err)
-      } finally {
-        setLoading(false)
-      }
+    setLoading(dataLoading)
+    if (patients.length > 0 && !selectedPatientId) {
+      setSelectedPatientId(patients[0].id)
     }
-    loadPatients()
-  }, [doctor, selectedPatientId])
+  }, [patients, dataLoading, selectedPatientId])
 
   const selectedPatient = useMemo(() => {
     return patients.find((p) => p.id === selectedPatientId) || null

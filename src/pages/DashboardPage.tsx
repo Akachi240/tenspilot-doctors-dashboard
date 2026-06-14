@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react'
 import { Users, Activity, TrendingDown, Target, UserPlus, FileText, Sparkles, AlertTriangle } from 'lucide-react'
 import { useAuth } from '@/contexts/AuthContext'
-import { fetchDashboardStats, fetchDoctorPatients } from '@/lib/firestore'
 import type { DashboardStats, PatientWithStats } from '@/lib/types'
+import { useDoctorData } from '@/hooks/useDoctorData'
 import { collection, query, where, onSnapshot, doc, updateDoc } from 'firebase/firestore'
 import { db } from '@/lib/firebase'
 import { cn } from '@/lib/utils'
@@ -106,65 +106,74 @@ export function DashboardPage() {
     }
   }
 
+  const { patients, allSessions, loading: dataLoading } = useDoctorData(doctor?.id)
+
   useEffect(() => {
-    if (!doctor) return
-    const loadData = async () => {
-      try {
-        setLoading(true)
-        setProgress(10)
-        setLoadingPhase('Loading global dashboard stats...')
-        
-        const [dashboardStats, patientsResult] = await Promise.all([
-          fetchDashboardStats(doctor.id),
-          fetchDoctorPatients(doctor.id),
-        ])
-        setStats(dashboardStats)
-        setProgress(60)
-        setLoadingPhase('Processing patient data...')
-        const docs = patientsResult.patients
-        
-        setProgress(75)
-        setLoadingPhase('Calculating weekly trends...')
-        
-        // Sort by last session desc
-        const sortedDocs = [...docs].sort((a, b) => 
-          (b.lastSessionDate?.getTime() || 0) - (a.lastSessionDate?.getTime() || 0)
-        )
-        setRecentPatients(sortedDocs.slice(0, 4))
+    if (!dataLoading && patients.length > 0) {
+      setLoading(true)
+      setProgress(10)
+      setLoadingPhase('Processing real-time data...')
 
-        // Calculate weekly activity
-        const oneWeekAgo = new Date()
-        oneWeekAgo.setHours(0,0,0,0)
-        oneWeekAgo.setDate(oneWeekAgo.getDate() - 6) // last 7 days including today
-        
-        const activityMap = new Map<string, number>()
-        for(let i=6; i>=0; i--) {
-            const d = new Date()
-            d.setDate(d.getDate() - i)
-            const dayName = d.toLocaleDateString('en-US', { weekday: 'short' })
-            activityMap.set(dayName, 0)
-        }
+      setProgress(60)
+      
+      setProgress(75)
+      setLoadingPhase('Calculating weekly trends...')
+      
+      // Sort by last session desc
+      const sortedDocs = [...patients].sort((a, b) => 
+        (b.lastSessionDate?.getTime() || 0) - (a.lastSessionDate?.getTime() || 0)
+      )
+      setRecentPatients(sortedDocs.slice(0, 4))
 
-        // Calculate weekly activity from already-fetched session data (no extra Firestore query)
-        const allSessions = patientsResult.allSessions
-        allSessions.forEach(session => {
-          if (session.timestamp >= oneWeekAgo) {
-            const dayName = session.timestamp.toLocaleDateString('en-US', { weekday: 'short' })
-            if (activityMap.has(dayName)) {
-              activityMap.set(dayName, activityMap.get(dayName)! + 1)
-            }
-          }
-        })
-        setWeeklyActivity(Array.from(activityMap.entries()).map(([day, sessions]) => ({ day, sessions })))
-        setProgress(100)
-      } catch (err) {
-        console.error(err)
-      } finally {
-        setTimeout(() => setLoading(false), 200) // Small delay to show 100%
+      // Calculate weekly activity
+      const oneWeekAgo = new Date()
+      oneWeekAgo.setHours(0,0,0,0)
+      oneWeekAgo.setDate(oneWeekAgo.getDate() - 6) // last 7 days including today
+      
+      const activityMap = new Map<string, number>()
+      for(let i=6; i>=0; i--) {
+          const d = new Date()
+          d.setDate(d.getDate() - i)
+          const dayName = d.toLocaleDateString('en-US', { weekday: 'short' })
+          activityMap.set(dayName, 0)
       }
+
+      allSessions.forEach(session => {
+        if (session.timestamp >= oneWeekAgo) {
+          const dayName = session.timestamp.toLocaleDateString('en-US', { weekday: 'short' })
+          if (activityMap.has(dayName)) {
+            activityMap.set(dayName, activityMap.get(dayName)! + 1)
+          }
+        }
+      })
+
+      const activityArray = Array.from(activityMap.entries()).map(([day, count]) => ({
+        day,
+        sessions: count
+      }))
+      setWeeklyActivity(activityArray)
+
+      // Calculate Stats
+      const statsObj: DashboardStats = {
+        totalPatients: patients.length,
+        activePatients: patients.filter(p => p.lastSessionDate && p.lastSessionDate >= oneWeekAgo).length,
+        avgPainReduction: patients.reduce((acc, p) => acc + (p.avgPainRelief || 0), 0) / (patients.length || 1),
+        weeklySessions: allSessions.filter(s => s.timestamp >= oneWeekAgo).length
+      }
+      setStats(statsObj)
+
+      setProgress(100)
+      setTimeout(() => setLoading(false), 300)
+    } else if (!dataLoading && patients.length === 0) {
+      setLoading(false)
+      setStats({
+        totalPatients: 0,
+        activePatients: 0,
+        avgPainReduction: 0,
+        weeklySessions: 0
+      })
     }
-    loadData()
-  }, [doctor])
+  }, [patients, allSessions, dataLoading])
 
   if (loading) {
     return (

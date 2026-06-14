@@ -4,8 +4,8 @@ import { cn } from '@/lib/utils'
 import { useAuth } from '@/contexts/AuthContext'
 import { collection, query, where, onSnapshot, orderBy, addDoc, serverTimestamp, doc, setDoc } from 'firebase/firestore'
 import { db } from '@/lib/firebase'
-import { fetchDoctorPatients } from '@/lib/firestore'
-import { PatientWithStats } from '@/lib/types'
+import type { PatientWithStats } from '@/lib/types'
+import { useDoctorData } from '@/hooks/useDoctorData'
 
 interface Message {
   id: string
@@ -31,18 +31,16 @@ export function MessagesPage() {
   const [messages, setMessages] = useState<Message[]>([])
   const [patientsMap, setPatientsMap] = useState<Record<string, PatientWithStats>>({})
   
+  const { patients } = useDoctorData(doctor?.id)
+  
+  useEffect(() => {
+    const map: Record<string, PatientWithStats> = {}
+    patients.forEach(p => map[p.id] = p)
+    setPatientsMap(map)
+  }, [patients])
+
   const activeChat = chats.find(c => c.patientId === activeChatId)
   const messagesEndRef = useRef<HTMLDivElement>(null)
-
-  // Fetch patient details to map names
-  useEffect(() => {
-    if (!doctor) return
-    fetchDoctorPatients(doctor.id).then(({ patients }) => {
-      const map: Record<string, PatientWithStats> = {}
-      patients.forEach(p => map[p.id] = p)
-      setPatientsMap(map)
-    }).catch(console.error)
-  }, [doctor])
 
   // Listen to chats list
   useEffect(() => {

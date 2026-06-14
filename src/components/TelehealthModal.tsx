@@ -131,14 +131,9 @@ export function TelehealthModal({ isOpen, onClose, patientName, patientId, docto
         document.head.appendChild(script)
       })
 
-    loadScript('https://8x8.vc/vpaas-magic-cookie-30/external_api.js')
-      .then(() => initJitsi('8x8.vc'))
-      .catch(() => {
-        // Fallback to meet.jit.si
-        loadScript('https://meet.jit.si/external_api.js')
-          .then(() => initJitsi('meet.jit.si'))
-          .catch((err) => console.error('All Jitsi sources failed:', err))
-      })
+    loadScript('https://meet.jit.si/external_api.js')
+      .then(() => initJitsi('meet.jit.si'))
+      .catch((err) => console.error('All Jitsi sources failed:', err))
 
     return () => {
       jitsiApiRef.current?.dispose()

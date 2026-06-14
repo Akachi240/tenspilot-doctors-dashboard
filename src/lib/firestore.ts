@@ -378,7 +378,7 @@ function chunkArray<T>(array: T[], size: number): T[][] {
 
 import { validateSession } from '@/lib/schemas/session.schema';
 
-function mapSession(id: string, data: Record<string, unknown>): Session | null {
+export function mapSession(id: string, data: Record<string, unknown>): Session | null {
   try {
     // Handle both Firestore Timestamp and Date objects
     const ts = data.timestamp as Timestamp | Date | undefined;
@@ -449,7 +449,7 @@ function mapLink(id: string, data: Record<string, unknown>): DoctorPatientLink {
   }
 }
 
-function mapPatient(doc: DocumentSnapshot): Patient {
+export function mapPatient(doc: DocumentSnapshot): Patient {
   const data = doc.data() || {}
   return {
     id: doc.id,
