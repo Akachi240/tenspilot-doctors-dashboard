@@ -156,9 +156,9 @@ export function DashboardPage() {
       // Calculate Stats
       const statsObj: DashboardStats = {
         totalPatients: patients.length,
-        activePatients: patients.filter(p => p.lastSessionDate && p.lastSessionDate >= oneWeekAgo).length,
-        avgPainReduction: patients.reduce((acc, p) => acc + (p.avgPainRelief || 0), 0) / (patients.length || 1),
-        weeklySessions: allSessions.filter(s => s.timestamp >= oneWeekAgo).length
+        complianceRate: Math.round((patients.filter(p => p.lastSessionDate && p.lastSessionDate >= oneWeekAgo).length / (patients.length || 1)) * 100),
+        averagePainRelief: patients.reduce((acc, p) => acc + (p.avgPainRelief || 0), 0) / (patients.length || 1),
+        activeSessionsThisWeek: allSessions.filter(s => s.timestamp >= oneWeekAgo).length
       }
       setStats(statsObj)
 
@@ -168,9 +168,9 @@ export function DashboardPage() {
       setLoading(false)
       setStats({
         totalPatients: 0,
-        activePatients: 0,
-        avgPainReduction: 0,
-        weeklySessions: 0
+        complianceRate: 0,
+        averagePainRelief: 0,
+        activeSessionsThisWeek: 0
       })
     }
   }, [patients, allSessions, dataLoading])

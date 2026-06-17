@@ -3,6 +3,7 @@ import { FileText, Download, Loader2, Calendar } from 'lucide-react'
 import { jsPDF } from 'jspdf'
 import autoTable from 'jspdf-autotable'
 import { useAuth } from '@/contexts/AuthContext'
+import { fetchPatientSessions } from '@/lib/firestore'
 import type { PatientWithStats, Session } from '@/lib/types'
 import { useDoctorData } from '@/hooks/useDoctorData'
 import { formatDate, getModeEmoji, cn } from '@/lib/utils'
@@ -63,15 +64,15 @@ export function ReportsPage() {
       const endD = new Date(endDate)
       endD.setHours(23, 59, 59, 999)
 
-      const sessions = allSessions.filter(s => 
+      const sessions = allSessions.filter((s: any) => 
         s.timestamp >= startD && s.timestamp <= endD
       )
 
       // Calculate statistics
       const totalSessions = sessions.length
-      const reliefs = sessions.map((s) => Math.max(0, s.painBefore - s.painAfter))
+      const reliefs = sessions.map((s: any) => Math.max(0, s.painBefore - s.painAfter))
       const avgRelief = totalSessions > 0 
-        ? Math.round((reliefs.reduce((a, b) => a + b, 0) / totalSessions) * 10) / 10 
+        ? Math.round((reliefs.reduce((a: number, b: number) => a + b, 0) / totalSessions) * 10) / 10 
         : 0
       const bestRelief = totalSessions > 0 ? Math.max(...reliefs) : 0
       const complianceRate = Math.min(100, Math.round((totalSessions / 12) * 100)) // mock expectation
@@ -153,7 +154,7 @@ export function ReportsPage() {
       pdf.setFont('helvetica', 'bold')
       pdf.text('Session History', 20, finalY + 15)
 
-      const sessionData = sessions.map((s) => [
+      const sessionData = sessions.map((s: any) => [
         formatDate(s.timestamp),
         `${getModeEmoji(s.modeId)} ${s.modeName || s.modeId}`,
         s.painBefore.toString(),

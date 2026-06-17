@@ -419,14 +419,14 @@ export function PatientDetailPage() {
               </div>
             )}
 
-            {patient.notes && (
+            {(patient as any).notes && (
               <div>
                 <div className="flex items-center gap-2 text-slate-400 mb-1">
                   <Stethoscope className="w-4 h-4" />
                   <span className="text-sm font-medium">Clinical Notes</span>
                 </div>
                 <p className="text-sm text-slate-300 bg-black/20 p-3 rounded-lg border border-white/5">
-                  {patient.notes}
+                  {(patient as any).notes}
                 </p>
               </div>
             )}
@@ -598,8 +598,8 @@ export function PatientDetailPage() {
       <UnlinkPatientModal
         isOpen={unlinkModalOpen}
         onClose={() => setUnlinkModalOpen(false)}
-        patientId={patient.id}
-        patientName={patient.name}
+        patient={patient as any}
+        onUnlink={() => navigate('/patients')}
       />
       
       <TelehealthModal 

@@ -44,7 +44,8 @@ export function DashboardLayout() {
     const q = query(
       collection(db, 'consultations'),
       where('doctorId', '==', doctor.id),
-      where('status', '==', 'ringing')
+      where('status', '==', 'ringing'),
+      where('initiatedBy', '==', 'patient')
     )
 
     const unsubscribe = onSnapshot(q, (snapshot) => {
