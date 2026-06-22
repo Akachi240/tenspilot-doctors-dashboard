@@ -15,6 +15,7 @@ export interface Patient {
   name: string
   condition?: string
   medications?: string[]
+  notes?: string
   age?: number
   dateOfBirth?: string
   supervisingPhysician?: string

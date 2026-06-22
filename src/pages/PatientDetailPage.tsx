@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect } from 'react'
+import { useState, useMemo } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import {
   ArrowLeft,
@@ -11,7 +11,6 @@ import {
   ChevronRight,
   Filter,
   Calendar,
-  Phone,
   Mail,
   MessageSquare,
   Video,
@@ -19,7 +18,6 @@ import {
   Pill,
   Stethoscope,
   Clock,
-  User,
   Settings2,
   X,
 } from 'lucide-react'
@@ -33,7 +31,7 @@ import {
   ResponsiveContainer,
   Legend,
 } from 'recharts'
-import type { Patient, Session, PainLog } from '@/lib/types'
+import type { PatientWithStats, Session } from '@/lib/types'
 import { usePatientDetail } from '@/hooks/usePatientDetail'
 import {
   cn,
@@ -419,14 +417,14 @@ export function PatientDetailPage() {
               </div>
             )}
 
-            {(patient as any).notes && (
+            {patient.notes && (
               <div>
                 <div className="flex items-center gap-2 text-slate-400 mb-1">
                   <Stethoscope className="w-4 h-4" />
                   <span className="text-sm font-medium">Clinical Notes</span>
                 </div>
                 <p className="text-sm text-slate-300 bg-black/20 p-3 rounded-lg border border-white/5">
-                  {(patient as any).notes}
+                  {patient.notes}
                 </p>
               </div>
             )}
@@ -590,15 +588,15 @@ export function PatientDetailPage() {
           setNotesModalOpen(false)
           setSelectedSession(null)
         }}
-        onUpdate={(sessionId, newNotes) => {
-          // Handled by snapshot
+        onUpdate={(_sessionId, _newNotes) => {
+          // Handled by Firestore snapshot listener
         }}
       />
       
       <UnlinkPatientModal
         isOpen={unlinkModalOpen}
         onClose={() => setUnlinkModalOpen(false)}
-        patient={patient as any}
+        patient={patient as PatientWithStats}
         onUnlink={() => navigate('/patients')}
       />
       
