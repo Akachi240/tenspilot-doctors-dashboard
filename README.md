@@ -117,25 +117,9 @@ Both apps share the same Firebase backend — when a patient logs a session in t
 
 ---
 
-## 🤝 Contributing
-
-See [CONTRIBUTING.md](./CONTRIBUTING.md) for full guidelines.
-
----
-
 ## 📄 License
 
-© Akachi240. All Rights Reserved. This project is not open source. No part of this codebase may be copied, modified, or distributed without explicit permission from the author.
-
----
-
-## 👨‍💻 Author
-
-**Akachi** — Healthcare Software Engineer
-
-[![GitHub](https://img.shields.io/badge/GitHub-@Akachi240-181717?logo=github)](https://github.com/Akachi240)
-
----
+© Akachi240. All Rights Reserved. This project is not open source. No part of this codebase may be copied, modified, or distributed without explicit permission from the author.---
 
 ## 🔗 Related
 
