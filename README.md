@@ -1,8 +1,8 @@
 <div align="center">
 
-# 🩺 Tenspilot Provider Dashboard
+# 🩺 TensPilot+ Provider Dashboard
 
-**Professional clinical management interface for healthcare providers in the Tenspilot M10s ecosystem**
+**Companion provider application for the TensPilot+ ecosystem — clinical management interface for healthcare professionals**
 
 [![React](https://img.shields.io/badge/React-19-61DAFB?logo=react&logoColor=white)](https://react.dev/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.7-3178C6?logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
@@ -11,7 +11,7 @@
 [![Tailwind CSS](https://img.shields.io/badge/Tailwind-4-06B6D4?logo=tailwindcss&logoColor=white)](https://tailwindcss.com/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](./LICENSE)
 
-[🌐 Live Demo](https://tenspilot-doctors-dashboard.vercel.app) · [📱 Patient App](https://github.com/Akachi240/remix-of-tenspilot1) · [🐛 Report Bug](https://github.com/Akachi240/tenspilot-doctors-dashboard/issues) · [✨ Request Feature](https://github.com/Akachi240/tenspilot-doctors-dashboard/issues)
+[🌐 Live Demo](https://tenspilot-doctors-dashboard.vercel.app) · [📱 Patient App](https://github.com/Akachi240/remix-of-tenspilot1) · [🐛 Report Bug](https://github.com/Akachi240/tenspilot-doctors-dashboard/issues)
 
 </div>
 
@@ -19,35 +19,38 @@
 
 ## 📖 About the Project
 
-The **Tenspilot M10s Provider Dashboard** is the clinical management hub for healthcare professionals working with the Tenspilot M10s ecosystem. Doctors and providers use this dashboard to monitor their patient roster, review real-time health data from M10s devices, generate clinical reports, and communicate securely with patients — all from a single, modern interface.
+**TensPilot+** is a healthcare software ecosystem built alongside a standalone TENS (Transcutaneous Electrical Nerve Stimulation) device for pain management therapy.
 
-> Built for providers. Designed for clinical workflows. Powered by real-time technology.
+The ecosystem has two components:
+- 🔧 **The TENS Device** — a standalone hardware unit (Arduino Uno based, 4 therapy modes) that delivers electrical stimulation therapy
+- 💻 **TensPilot+ Software** — companion web applications (this provider dashboard + the patient app) that help doctors monitor their patients' therapy progress and communicate with them
+
+> The apps and hardware operate independently — TensPilot+ is a **companion app**, not a direct device interface. This dashboard gives healthcare providers a real-time view of their patients' self-reported session data and pain logs.
 
 ---
 
 ## ✨ Features
 
-### 🩺 Clinical Tools
+### 🩺 Provider Tools
 | Feature | Description |
 |---|---|
-| 👥 **Patient Management** | Full patient roster with search, filtering, and status tracking |
-| 📊 **Patient Analytics** | Real-time health metrics, session history & trend visualisation |
-| 📋 **Clinical Reports** | Comprehensive report generation & export to PDF via jsPDF |
-| 💬 **Secure Messaging** | HIPAA-conscious patient–provider messaging system |
-| 🎬 **Video Consultations** | Real-time telehealth video calls via Jitsi SDK |
-| 🧾 **Patient Detail View** | Deep-dive per-patient dashboards with full session history |
-| ⚙️ **Account Settings** | Profile management, notification preferences & security |
-| 🔐 **Role-Based Access** | Provider authentication with Firebase Auth |
+| 👥 **Patient Management** | Full patient roster with search, filtering and status tracking |
+| 📊 **Patient Analytics** | Session history, pain trend charts and therapy outcomes |
+| 📋 **Clinical Reports** | Generate and export patient reports to PDF (jsPDF + AutoTable) |
+| 💬 **Patient Messaging** | Secure provider-to-patient messaging |
+| 🧾 **Patient Detail View** | Deep-dive per-patient dashboard with full session history |
+| 🤖 **AI Summaries** | Groq-powered AI summaries of patient health data |
+| ⚙️ **Account Settings** | Profile management, notification preferences and security |
+| 🔐 **Secure Auth** | Firebase Authentication with role-based access |
 
 ### ⚙️ Technical Highlights
 | Capability | Detail |
 |---|---|
-| ⚡ **Performance** | Vite 8 + SWC for sub-100ms hot module replacement |
-| 📱 **Responsive Design** | Fully optimised for desktop and tablet clinical environments |
+| ⚡ **Performance** | Vite 8 + SWC for fast builds and instant HMR |
+| 📱 **Responsive** | Optimised for desktop and tablet clinical environments |
 | 🔒 **Secure Auth** | Firebase Authentication with protected route guards |
-| 🤖 **AI Assistance** | Groq LLM integration for AI-powered clinical summaries |
 | 📈 **Rich Charts** | Recharts data visualisation for health trend analysis |
-| 🎨 **Modern UI** | Tailwind CSS 4 + Framer Motion for smooth, premium interactions |
+| 🎨 **Modern UI** | Tailwind CSS 4 + Framer Motion for smooth interactions |
 
 ---
 
@@ -62,7 +65,6 @@ The **Tenspilot M10s Provider Dashboard** is the clinical management hub for hea
 | **Forms** | React Hook Form + Zod | 7.x / 4.x |
 | **Backend** | Firebase Auth + Firestore | 12.x |
 | **AI / LLM** | Groq SDK | 1.x |
-| **Video Calls** | Jitsi React SDK | 1.x |
 | **PDF Export** | jsPDF + jsPDF-AutoTable | 4.x |
 | **Charts** | Recharts | 3.x |
 | **Routing** | React Router v7 | 7.x |
@@ -96,22 +98,6 @@ cp .env.example .env.local
 npm run dev
 ```
 
-The app will be available at `http://localhost:5173`.
-
-### Environment Variables
-
-Copy `.env.example` to `.env.local` and populate:
-
-```env
-VITE_FIREBASE_API_KEY=your_api_key
-VITE_FIREBASE_AUTH_DOMAIN=your_auth_domain
-VITE_FIREBASE_PROJECT_ID=your_project_id
-VITE_FIREBASE_STORAGE_BUCKET=your_storage_bucket
-VITE_FIREBASE_MESSAGING_SENDER_ID=your_sender_id
-VITE_FIREBASE_APP_ID=your_app_id
-VITE_GROQ_API_KEY=your_groq_api_key
-```
-
 ---
 
 ## 📂 Project Structure
@@ -123,7 +109,7 @@ tenspilot-doctors-dashboard/
 │   ├── components/          # Reusable UI components
 │   │   ├── dashboard/      # Dashboard widgets & summary cards
 │   │   ├── patients/       # Patient list & management UI
-│   │   ├── reports/        # Report viewer & export tools
+│   │   ├── reports/        # Report viewer & PDF export
 │   │   ├── messages/       # Messaging interface
 │   │   └── ui/             # Shared design primitives
 │   ├── contexts/           # React Context providers
@@ -133,8 +119,7 @@ tenspilot-doctors-dashboard/
 │   └── test/               # Unit & integration tests
 ├── docs/                    # Additional documentation
 ├── .env.example             # Environment variable template
-├── vite.config.ts           # Vite configuration
-└── tailwind.config.ts       # Tailwind design system config
+└── vite.config.ts           # Vite configuration
 ```
 
 ---
@@ -145,9 +130,9 @@ tenspilot-doctors-dashboard/
 |---|---|---|
 | `/login` | Login | Provider Firebase authentication |
 | `/create-profile` | Create Profile | First-time provider onboarding |
-| `/dashboard` | Dashboard | High-level patient & activity overview |
+| `/dashboard` | Dashboard | Patient overview & activity summary |
 | `/patients` | Patients | Full patient roster & search |
-| `/patients/:id` | Patient Detail | Deep-dive patient health data |
+| `/patients/:id` | Patient Detail | Per-patient session data & trends |
 | `/reports` | Reports | Generate & export clinical reports |
 | `/messages` | Messages | Secure patient–provider messaging |
 | `/settings` | Settings | Account preferences & security |
@@ -157,74 +142,51 @@ tenspilot-doctors-dashboard/
 ## 🏗️ Architecture
 
 ```
-┌─────────────────────────────────────────────────┐
-│              Provider Browser App                │
-│  React 19 + TypeScript + Vite 8 + Tailwind 4   │
-│  ─────────────────────────────────────────────  │
-│  React Context API (auth, patient state)        │
-│  React Router v7 (client-side routing)          │
-└──────────┬──────────────────────────────────────┘
-           │
-    ┌──────┴───────────────────────┐
-    │                              │
-    ▼                              ▼
-┌────────────────┐      ┌─────────────────────┐
-│   Firebase     │      │   External Services  │
-│  ─────────── │      │  ──────────────────  │
-│  Auth (JWT)   │      │  Groq SDK (AI Chat)  │
-│  Firestore DB │      │  Jitsi (Telehealth)  │
-│  Storage      │      │  Vercel (Hosting)    │
-└────────────────┘      └─────────────────────┘
-           │
-           ▼
-┌────────────────────────────────┐
-│   Tenspilot M10s Patient App  │
-│  (Shared Firestore database)  │
-└────────────────────────────────┘
+┌──────────────────────────────────────────────────┐
+│          TensPilot+ Provider Dashboard            │
+│  React 19 + TypeScript + Vite 8 + Tailwind 4    │
+└──────────────────────┬───────────────────────────┘
+                       │
+              ┌────────┴────────┐
+              │                 │
+              ▼                 ▼
+   ┌─────────────────┐  ┌───────────────────┐
+   │    Firebase      │  │  External APIs    │
+   │  Auth + Firestore│  │  Groq (AI chat)   │
+   │  (shared with    │  │  Vercel (hosting) │
+   │  Patient App)    │  └───────────────────┘
+   └────────┬─────────┘
+            │ Real-time sync
+            ▼
+   ┌─────────────────────────┐
+   │  TensPilot+ Patient App │
+   │  (remix-of-tenspilot1)  │
+   └─────────────────────────┘
 ```
 
-### Data Flow
-- **Patient data** is written by the M10s device and Patient App to Firestore
-- **Provider Dashboard** reads that same Firestore data in real time
-- **Shared collections** ensure both apps stay perfectly in sync
-- **Role-based security rules** in Firestore ensure providers can only access their own patients
+Both apps share the same Firebase backend — when a patient logs a session in the patient app, it appears immediately in the provider's dashboard in real time.
 
 ---
 
 ## 🧪 Testing
 
 ```bash
-# Run all tests (single pass)
-npm run test
-
-# Watch mode (TDD)
-npm run test:watch
-
-# Generate coverage report
-npm run test:coverage
+npm run test          # Run all tests
+npm run test:watch    # Watch mode
+npm run test:coverage # Coverage report
 ```
-
-Tests live in `src/test/` and use **Vitest** + **React Testing Library** + **jsdom**.
 
 ---
 
 ## 🤝 Contributing
 
-Contributions are what make the open-source community amazing. Any contributions you make are **greatly appreciated**!
-
-1. **Fork** the repository
-2. Create your feature branch: `git checkout -b feature/amazing-feature`
-3. Commit your changes: `git commit -m 'feat: add amazing feature'`
-4. Push to the branch: `git push origin feature/amazing-feature`
-5. **Open a Pull Request**
-
-Please read [CONTRIBUTING.md](./CONTRIBUTING.md) for our code standards and contribution guidelines.
+See [CONTRIBUTING.md](./CONTRIBUTING.md) for full guidelines.
 
 ---
 
 ## 📄 License
 
-Distributed under the **MIT License**. See [`LICENSE`](./LICENSE) for more information.
+MIT License — see [LICENSE](./LICENSE) for details.
 
 ---
 
@@ -238,7 +200,7 @@ Distributed under the **MIT License**. See [`LICENSE`](./LICENSE) for more infor
 
 ## 🔗 Related
 
-- 📱 **[Tenspilot Patient App](https://github.com/Akachi240/remix-of-tenspilot1)** — AI-powered patient engagement platform
+- 📱 **[TensPilot+ Patient App](https://github.com/Akachi240/remix-of-tenspilot1)** — Patient-facing companion app (shared Firebase backend)
 
 ---
 
