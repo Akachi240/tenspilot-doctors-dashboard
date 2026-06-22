@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect } from 'react'
+import { useState, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
   Search,
@@ -10,7 +10,6 @@ import {
   Filter,
 } from 'lucide-react'
 import { useAuth } from '@/contexts/AuthContext'
-import type { PatientWithStats } from '@/lib/types'
 import { useDoctorData } from '@/hooks/useDoctorData'
 import { cn } from '@/lib/utils'
 import { InvitePatientModal } from '@/components/InvitePatientModal'

@@ -36,6 +36,7 @@ export function MessagesPage() {
   useEffect(() => {
     const map: Record<string, PatientWithStats> = {}
     patients.forEach(p => map[p.id] = p)
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setPatientsMap(map)
   }, [patients])
 

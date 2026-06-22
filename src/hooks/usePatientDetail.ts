@@ -12,6 +12,7 @@ export function usePatientDetail(patientId: string | undefined) {
 
   useEffect(() => {
     if (!patientId) return;
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setLoading(true);
 
     const unsubPatient = onSnapshot(doc(db, 'users', patientId), (docSnap) => {

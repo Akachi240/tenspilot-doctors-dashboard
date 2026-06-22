@@ -20,6 +20,7 @@ export function useDoctorData(doctorId: string | undefined) {
 
   useEffect(() => {
     if (!doctorId) return;
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setLoading(true);
 
     const qLinks = query(

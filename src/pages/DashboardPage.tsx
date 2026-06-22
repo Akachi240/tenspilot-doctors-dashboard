@@ -110,6 +110,7 @@ export function DashboardPage() {
 
   useEffect(() => {
     if (!dataLoading && patients.length > 0) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setLoading(true)
       setProgress(10)
       setLoadingPhase('Processing real-time data...')

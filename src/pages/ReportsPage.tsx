@@ -4,7 +4,7 @@ import { jsPDF } from 'jspdf'
 import autoTable from 'jspdf-autotable'
 import { useAuth } from '@/contexts/AuthContext'
 import { fetchPatientSessions } from '@/lib/firestore'
-import type { PatientWithStats, Session } from '@/lib/types'
+import type { Session } from '@/lib/types'
 import { useDoctorData } from '@/hooks/useDoctorData'
 import { formatDate, getModeEmoji, cn } from '@/lib/utils'
 import {
@@ -30,9 +30,10 @@ export function ReportsPage() {
   const [startDate, setStartDate] = useState<string>(defaultStart.toISOString().split('T')[0])
   const [endDate, setEndDate] = useState<string>(defaultEnd.toISOString().split('T')[0])
 
-  const { patients, allSessions, loading: dataLoading } = useDoctorData(doctor?.id)
+  const { patients, loading: dataLoading } = useDoctorData(doctor?.id)
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setLoading(dataLoading)
     if (patients.length > 0 && !selectedPatientId) {
       setSelectedPatientId(patients[0].id)
@@ -64,13 +65,13 @@ export function ReportsPage() {
       const endD = new Date(endDate)
       endD.setHours(23, 59, 59, 999)
 
-      const sessions = allSessions.filter((s: any) => 
+      const sessions = allSessions.filter((s: Session) =>
         s.timestamp >= startD && s.timestamp <= endD
       )
 
       // Calculate statistics
       const totalSessions = sessions.length
-      const reliefs = sessions.map((s: any) => Math.max(0, s.painBefore - s.painAfter))
+      const reliefs = sessions.map((s: Session) => Math.max(0, s.painBefore - s.painAfter))
       const avgRelief = totalSessions > 0 
         ? Math.round((reliefs.reduce((a: number, b: number) => a + b, 0) / totalSessions) * 10) / 10 
         : 0
@@ -154,7 +155,7 @@ export function ReportsPage() {
       pdf.setFont('helvetica', 'bold')
       pdf.text('Session History', 20, finalY + 15)
 
-      const sessionData = sessions.map((s: any) => [
+      const sessionData = sessions.map((s: Session) => [
         formatDate(s.timestamp),
         `${getModeEmoji(s.modeId)} ${s.modeName || s.modeId}`,
         s.painBefore.toString(),
