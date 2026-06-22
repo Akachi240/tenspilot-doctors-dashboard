@@ -1,8 +1,27 @@
 {
-  "name": "tenspilot-doctor-dashboard",
-  "version": "0.1.0",
+  "name": "tenspilot-providers-dashboard",
+  "description": "Provider dashboard for Tenspilot M10s - Healthcare professional clinical management interface",
+  "version": "1.0.0",
   "private": true,
   "type": "module",
+  "homepage": "https://github.com/Akachi240/tenspilot-doctors-dashboard",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Akachi240/tenspilot-doctors-dashboard.git"
+  },
+  "author": "Akachi240",
+  "license": "MIT",
+  "keywords": [
+    "healthcare",
+    "telemedicine",
+    "react",
+    "typescript",
+    "firebase",
+    "ai-powered",
+    "provider-dashboard",
+    "clinical-management",
+    "device-integration"
+  ],
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build",

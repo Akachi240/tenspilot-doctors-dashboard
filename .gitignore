@@ -1,22 +1,71 @@
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+vite-dev.log
+vite-dev.err.log
+
+# Runtime data
+node_modules
+dist
+dist-ssr
+build
+*.local
+
+# Environment variables
+.env
+.env.local
+.env.*.local
+
+# Lock files
+bun.lock
+bun.lockb
+*.lockb
+
+# ESLint reports
+eslint-report*.json
+lint-output.txt
+lint-summary*.txt
+format-lint.cjs
+parse.cjs
+
+# VS Code Extensions (never commit .vsix files)
+*.vsix
+
+# TypeScript build info
+*.tsbuildinfo
+
+# Editor directories
+.vscode/*
+!.vscode/extensions.json
+.idea
+.DS_Store
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# Code workspace files
+*.code-workspace
+
+# Deployment
+.vercel
+.firebase/
+
 # v0 sandbox internal files
 __v0_runtime_loader.js
 __v0_devtools.tsx
 __v0_jsx-dev-runtime.ts
 .snowflake/
 .v0-trash/
-.vercel/
 
-# Environment variables
-.env*.local
-
-# Common ignores
-node_modules
+# Next.js
 .next/
-.DS_Store
-# Firebase
-.firebase/
 
-# Build outputs
-build/
-dist/
-.vercel
+# Misc
+push_env.ps1
